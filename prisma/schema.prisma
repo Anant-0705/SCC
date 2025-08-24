@@ -1,0 +1,241 @@
+// This is your Prisma schema file.
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  CITIZEN
+  ADMIN
+  VENDOR
+}
+
+enum IssueStatus {
+  REPORTED
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+enum IssueCategory {
+  INFRASTRUCTURE
+  SAFETY
+  CLEANLINESS
+  UTILITIES
+  TRAFFIC
+  OTHER
+}
+
+enum MarketplaceCategory {
+  GOODS
+  SERVICES
+  ELECTRONICS
+  FURNITURE
+  VEHICLES
+  BOOKS
+  CLOTHING
+  OTHER
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  phone     String?
+  role      UserRole @default(CITIZEN)
+  verified  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  announcements   Announcement[]
+  events          Event[]
+  issues          Issue[]
+  marketplaceItems MarketplaceItem[]
+  forumPosts      ForumPost[]
+  forumComments   ForumComment[]
+  eventAttendees  EventAttendee[]
+  badges          UserBadge[]
+
+  @@map("users")
+}
+
+model Announcement {
+  id          String   @id @default(cuid())
+  title       String
+  content     String
+  category    String
+  priority    String   @default("medium") // low, medium, high, urgent
+  isPublished Boolean  @default(false)
+  validUntil  DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  authorId String
+  author   User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@map("announcements")
+}
+
+model Event {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  location    String
+  startDate   DateTime
+  endDate     DateTime?
+  category    String
+  maxAttendees Int?
+  isPublished Boolean  @default(false)
+  imageUrl    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  organizerId String
+  organizer   User            @relation(fields: [organizerId], references: [id], onDelete: Cascade)
+  attendees   EventAttendee[]
+
+  @@map("events")
+}
+
+model EventAttendee {
+  id       String @id @default(cuid())
+  eventId  String
+  userId   String
+  joinedAt DateTime @default(now())
+
+  // Relations
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, userId])
+  @@map("event_attendees")
+}
+
+model Issue {
+  id          String        @id @default(cuid())
+  title       String
+  description String
+  location    String
+  category    IssueCategory
+  status      IssueStatus   @default(REPORTED)
+  priority    String        @default("medium")
+  imageUrl    String?
+  upvotes     Int           @default(0)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  // Relations
+  reporterId String
+  reporter   User   @relation(fields: [reporterId], references: [id], onDelete: Cascade)
+
+  @@map("issues")
+}
+
+model MarketplaceItem {
+  id          String              @id @default(cuid())
+  title       String
+  description String
+  price       Float?
+  category    MarketplaceCategory
+  condition   String? // new, like-new, good, fair
+  isAvailable Boolean             @default(true)
+  isApproved  Boolean             @default(false)
+  imageUrl    String?
+  contactInfo String
+  location    String
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+
+  // Relations
+  sellerId String
+  seller   User   @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+
+  @@map("marketplace_items")
+}
+
+model EmergencyContact {
+  id          String  @id @default(cuid())
+  name        String
+  service     String
+  phoneNumber String
+  address     String?
+  isVerified  Boolean @default(false)
+  isActive    Boolean @default(true)
+  category    String // police, fire, medical, utility, other
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("emergency_contacts")
+}
+
+model ForumPost {
+  id        String   @id @default(cuid())
+  title     String
+  content   String
+  category  String
+  upvotes   Int      @default(0)
+  downvotes Int      @default(0)
+  isPinned  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  authorId String
+  author   User           @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  comments ForumComment[]
+
+  @@map("forum_posts")
+}
+
+model ForumComment {
+  id        String   @id @default(cuid())
+  content   String
+  upvotes   Int      @default(0)
+  downvotes Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  postId   String
+  post     ForumPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  authorId String
+  author   User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@map("forum_comments")
+}
+
+model Badge {
+  id          String @id @default(cuid())
+  name        String @unique
+  description String
+  icon        String
+  color       String
+
+  // Relations
+  users UserBadge[]
+
+  @@map("badges")
+}
+
+model UserBadge {
+  id       String   @id @default(cuid())
+  userId   String
+  badgeId  String
+  earnedAt DateTime @default(now())
+
+  // Relations
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  badge Badge @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, badgeId])
+  @@map("user_badges")
+}
