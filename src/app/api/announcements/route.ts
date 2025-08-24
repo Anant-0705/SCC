@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { Prisma } from '@prisma/client'
 
 export async function GET(request: NextRequest) {
   try {
@@ -9,7 +10,7 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get('search')
     const published = searchParams.get('published') !== 'false'
 
-    const where: any = {
+    const where: Prisma.AnnouncementWhereInput = {
       isPublished: published,
     }
 
@@ -18,13 +19,13 @@ export async function GET(request: NextRequest) {
     }
 
     if (priority) {
-      where.priority = priority
+      where.priority = priority as AnnouncementPriority
     }
 
     if (search) {
       where.OR = [
-        { title: { contains: search, mode: 'insensitive' } },
-        { content: { contains: search, mode: 'insensitive' } },
+        { title: { contains: search } },
+        { content: { contains: search } },
       ]
     }
 
