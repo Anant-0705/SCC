@@ -12,8 +12,9 @@ import {
   CheckCircle,
   AlertTriangle
 } from 'lucide-react'
+import { EmergencyContact } from '@prisma/client'
 
-async function getEmergencyContacts() {
+async function getEmergencyContacts(): Promise<EmergencyContact[]> {
   try {
     const contacts = await prisma.emergencyContact.findMany({
       where: {
@@ -62,7 +63,7 @@ function getCategoryColor(category: string) {
   }
 }
 
-function EmergencyContactCard({ contact }: { contact: any }) {
+function EmergencyContactCard({ contact }: { contact: EmergencyContact }) {
   return (
     <div className={`bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow border-2 ${getCategoryColor(contact.category)} p-6`}>
       <div className="flex items-start justify-between mb-4">

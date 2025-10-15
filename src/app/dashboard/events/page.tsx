@@ -8,11 +8,27 @@ import {
   Filter,
   MapPin,
   Users,
-  Clock,
-  User
+  Clock
 } from 'lucide-react'
+import { Prisma } from '@prisma/client'
 
-async function getEvents() {
+type EventWithOrganizer = Prisma.EventGetPayload<{
+  include: {
+    organizer: {
+      select: {
+        name: true,
+        role: true,
+      },
+    },
+    _count: {
+      select: {
+        attendees: true,
+      },
+    },
+  },
+}>
+
+async function getEvents(): Promise<EventWithOrganizer[]> {
   try {
     const events = await prisma.event.findMany({
       include: {
@@ -45,7 +61,7 @@ async function getEvents() {
   }
 }
 
-function EventCard({ event }: { event: any }) {
+function EventCard({ event }: { event: EventWithOrganizer }) {
   const isUpcoming = new Date(event.startDate) > new Date()
   const attendeeCount = event._count.attendees
 
@@ -69,7 +85,7 @@ function EventCard({ event }: { event: any }) {
     'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7'
   ]
   
-  const eventImage = event.imageUrl || `${defaultImages[event.id % defaultImages.length]}?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80`
+  const eventImage = event.imageUrl || `${defaultImages[Number(event.id) % defaultImages.length]}?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80`
 
   return (
     <div className="group bg-white rounded-2xl shadow-md hover:shadow-2xl transition-all duration-300 border border-gray-200/50 overflow-hidden backdrop-blur-sm transform hover:-translate-y-2">

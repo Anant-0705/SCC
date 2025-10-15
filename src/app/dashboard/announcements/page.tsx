@@ -11,8 +11,20 @@ import {
   CheckCircle,
   Clock
 } from 'lucide-react'
+import { Prisma } from '@prisma/client'
 
-async function getAnnouncements() {
+type AnnouncementWithAuthor = Prisma.AnnouncementGetPayload<{
+  include: {
+    author: {
+      select: {
+        name: true,
+        role: true,
+      },
+    },
+  },
+}>
+
+async function getAnnouncements(): Promise<AnnouncementWithAuthor[]> {
   try {
     const announcements = await prisma.announcement.findMany({
       include: {
@@ -63,7 +75,7 @@ function getPriorityBadge(priority: string) {
   return styles[priority as keyof typeof styles] || styles.medium
 }
 
-function AnnouncementCard({ announcement }: { announcement: any }) {
+function AnnouncementCard({ announcement }: { announcement: AnnouncementWithAuthor }) {
   const isUrgent = announcement.priority === 'urgent'
   const isHighPriority = announcement.priority === 'high'
   
@@ -245,7 +257,7 @@ export default async function AnnouncementsPage() {
         <Suspense fallback={<AnnouncementsLoading />}>
           {announcements.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {announcements.map((announcement: any) => (
+              {announcements.map((announcement) => (
                 <AnnouncementCard key={announcement.id} announcement={announcement} />
               ))}
             </div>

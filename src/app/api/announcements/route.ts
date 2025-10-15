@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
     }
 
     if (priority) {
-      where.priority = priority as AnnouncementPriority
+      where.priority = priority
     }
 
     if (search) {

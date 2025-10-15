@@ -12,8 +12,20 @@ import {
   Star,
   IndianRupee
 } from 'lucide-react'
+import { Prisma } from '@prisma/client'
 
-async function getMarketplaceItems() {
+type MarketplaceItemWithSeller = Prisma.MarketplaceItemGetPayload<{
+  include: {
+    seller: {
+      select: {
+        name: true,
+        role: true,
+      },
+    },
+  },
+}>
+
+async function getMarketplaceItems(): Promise<MarketplaceItemWithSeller[]> {
   try {
     const items = await prisma.marketplaceItem.findMany({
       include: {
@@ -39,11 +51,6 @@ async function getMarketplaceItems() {
   }
 }
 
-function getCategoryIcon(category: string) {
-  // You can add specific icons for each category
-  return <ShoppingCart className="h-5 w-5" />
-}
-
 function getConditionBadge(condition: string) {
   const styles = {
     'new': 'bg-green-100 text-green-800',
@@ -55,7 +62,7 @@ function getConditionBadge(condition: string) {
   return styles[condition as keyof typeof styles] || 'bg-gray-100 text-gray-800'
 }
 
-function MarketplaceCard({ item }: { item: any }) {
+function MarketplaceCard({ item }: { item: MarketplaceItemWithSeller }) {
   return (
     <div className="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow border border-gray-200 overflow-hidden">
       {item.imageUrl ? (

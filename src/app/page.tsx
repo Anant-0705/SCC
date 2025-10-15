@@ -153,7 +153,7 @@ export default function Home() {
               Needs
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-              From local announcements to emergency contacts, we've got all your community needs covered in one beautiful, easy-to-use platform.
+              From local announcements to emergency contacts, we&apos;ve got all your community needs covered in one beautiful, easy-to-use platform.
             </p>
           </div>
 

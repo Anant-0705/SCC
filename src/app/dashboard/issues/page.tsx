@@ -16,7 +16,7 @@ import {
 } from 'lucide-react'
 import { Prisma } from '@prisma/client'
 
-const issueWithReporterPayload = Prisma.validator<Prisma.IssueFindManyArgs>()({
+type IssueWithReporter = Prisma.IssueGetPayload<{
   include: {
     reporter: {
       select: {
@@ -25,9 +25,7 @@ const issueWithReporterPayload = Prisma.validator<Prisma.IssueFindManyArgs>()({
       },
     },
   },
-})
-
-type IssueWithReporter = Prisma.IssueGetPayload<typeof issueWithReporterPayload>
+}>
 
 async function getIssues(): Promise<IssueWithReporter[]> {
   try {

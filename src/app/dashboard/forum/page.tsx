@@ -13,8 +13,25 @@ import {
   Pin,
   Clock
 } from 'lucide-react'
+import { Prisma } from '@prisma/client'
 
-async function getForumPosts() {
+type ForumPostWithAuthor = Prisma.ForumPostGetPayload<{
+  include: {
+    author: {
+      select: {
+        name: true,
+        role: true,
+      },
+    },
+    _count: {
+      select: {
+        comments: true,
+      },
+    },
+  },
+}>
+
+async function getForumPosts(): Promise<ForumPostWithAuthor[]> {
   try {
     const posts = await prisma.forumPost.findMany({
       include: {
@@ -42,7 +59,7 @@ async function getForumPosts() {
   }
 }
 
-function ForumPostCard({ post }: { post: any }) {
+function ForumPostCard({ post }: { post: ForumPostWithAuthor }) {
   const commentCount = post._count.comments
   const netVotes = post.upvotes - post.downvotes
 
@@ -156,8 +173,8 @@ const categories = [
 
 export default async function ForumPage() {
   const posts = await getForumPosts()
-  const pinnedPosts = posts.filter((post: { isPinned: any }) => post.isPinned)
-  const regularPosts = posts.filter((post: { isPinned: any }) => !post.isPinned)
+  const pinnedPosts = posts.filter((post) => post.isPinned)
+  const regularPosts = posts.filter((post) => !post.isPinned)
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -233,7 +250,7 @@ export default async function ForumPage() {
                     <Pin className="h-5 w-5 mr-2 text-indigo-600" />
                     Pinned Discussions
                   </h2>
-                  {pinnedPosts.map((post: any) => (
+                  {pinnedPosts.map((post) => (
                     <ForumPostCard key={post.id} post={post} />
                   ))}
                 </div>
